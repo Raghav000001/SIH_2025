@@ -1,0 +1,2 @@
+export const DB_NAME="SIH_DB"
+
