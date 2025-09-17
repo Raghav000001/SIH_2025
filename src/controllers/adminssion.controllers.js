@@ -130,9 +130,6 @@ export const applyForAdmission = async (req, res) => {
         { admissionStatus: "rejected" },
         { new: true }
       );
-  
-   
-
       if (!student) {
         return res.status(404).json({ message: "Student not found" });
       }
@@ -169,7 +166,6 @@ export const applyForAdmission = async (req, res) => {
     }
   };
   
-
   export const fetchAdmissions = async (req, res) => {
     try {
       const { status, search, page = 1, limit = 10 } = req.query;

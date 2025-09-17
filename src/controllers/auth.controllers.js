@@ -189,7 +189,6 @@ export const verifyOTP = async (req, res) => {
   }
 };
 
-
 export const createPassword = async (req, res) => {
   try {
     const { email, password, confirmPassword } = req.body;
