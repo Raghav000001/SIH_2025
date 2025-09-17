@@ -1,6 +1,6 @@
 import { Student } from "../models/user.modal.js";
 import { sendMail } from "../helpers/mailer.js";
-
+import FeeStructure from "../models/feesStructure.modal.js"
 
 export const applyForAdmission = async (req, res) => {
     try {
@@ -66,38 +66,61 @@ export const applyForAdmission = async (req, res) => {
     }
   };
 
-
   export const approveAdmission = async (req, res) => {
     try {
       const { studentId } = req.params;
   
-      const student = await Student.findByIdAndUpdate(
-        studentId,
-        { admissionStatus: "approved" },
-        { new: true }
-      );
-
-      await sendMail(
-        email,
-        "Admission Approved 🎉",
-        `<h3>Dear ${name},</h3>
-        <p>Congratulations! Your admission has been approved. Welcome to our institute 🎓.</p>`
-      );
-  
-  
+      // 1. Student fetch
+      const student = await Student.findById(studentId);
       if (!student) {
         return res.status(404).json({ message: "Student not found" });
       }
   
+      // 2. Fee Structure fetch (course + year match)
+      const feeStructure = await FeeStructure.findOne({
+        course: student.course,
+        year: parseInt(student.yearOfEnrollment), // ✅ fix datatype mismatch
+      });
+  
+      if (!feeStructure) {
+        return res.status(400).json({
+          message: `No fee structure defined for course: ${student.course}, year: ${student.yearOfEnrollment}`,
+        });
+      }
+  
+      // 3. Admission approve + attach fee record
+      student.admissionStatus = "approved";
+      student.fees.push({
+        amount: feeStructure.totalFee,
+        mode: "online", // default, real update jab payment hoga
+        receiptId: `PENDING-${Date.now()}`,
+        status: "pending",
+      });
+  
+      await student.save();
+  
+      // 4. Send email notification
+      await sendMail(
+        student.email,
+        "Admission Approved 🎉",
+        `<h3>Dear ${student.name},</h3>
+          <p>Congratulations! Your admission has been approved. 🎓</p>
+          <p>Your total fee for <b>${student.course}</b> (${student.yearOfEnrollment}) is <b>₹${feeStructure.totalFee}</b>.</p>
+          <p>Please proceed with the payment at the earliest.</p>`
+      );
+  
       return res.status(200).json({
-        message: "Admission approved successfully",
+        message: "Admission approved successfully & fee structure attached",
         student,
       });
     } catch (error) {
-      return res.status(500).json({ message: "Error approving admission", error });
+      return res.status(500).json({
+        message: "Error approving admission",
+        error: error.message,
+      });
     }
   };
-
+  
   export const rejectAdmission = async (req, res) => {
     try {
       const { studentId } = req.params;

@@ -23,6 +23,9 @@ import libraryRouter from "./routes/library.routes.js";
 import hostelRouter from "./routes/hostel.routes.js";
 import studentRouter from "./routes/student.routes.js";
 import teacherRouter from "./routes/teacher.routes.js";
+import examScheduleRouter from "./routes/exams.routes.js";
+import examResultRouter from "./routes/examResult.routes.js";
+import feeStructureRouter from "./routes/feeStructure.routes.js";
 
 
 
@@ -34,6 +37,9 @@ app.use("/api/admission/v1/",admissionRouter);
 app.use("/api/hostel/v1/",hostelRouter);
 app.use("/api/student/v1/",studentRouter);
 app.use("/api/teacher/v1/",teacherRouter);
+app.use("/api/examSchedule/v1/",examScheduleRouter);
+app.use("/api/examsResult/v1/",examResultRouter);
+app.use("/api/feeStructure/v1/",feeStructureRouter);
 
 
 
