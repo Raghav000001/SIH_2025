@@ -282,7 +282,7 @@ export const verifyForgotPasswordOtp = async (req, res) => {
       return res.status(404).json({ success: false, message: "User not found" });
     }
 
-    if (!user.otp || user.otp !== otp || !user.otpExpiry || user.otpExpiry < Date.now()) {
+    if (!user.resetOtp || user.resetOtp !== otp || !user.resetOtpExpiry || user.resetOtpExpiry < Date.now()) {
       return res.status(400).json({ success: false, message: "Invalid or expired OTP" });
     }
 
@@ -313,8 +313,6 @@ export const verifyForgotPasswordOtp = async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
-
-
 
 // 3. Reset Password
 export const resetForgotPassword = async (req, res) => {

@@ -51,7 +51,7 @@ export const applyForAdmission = async (req, res) => {
       await sendMail(
         email,
         "Admission Application Received",
-        `<h3>Dear ${name},</h3>
+        `<h3>Dear ${student.name},</h3>
         <p>Thank you for applying for admission. Our team will review your application and get back to you soon.</p>`
       );
   
@@ -79,7 +79,7 @@ export const applyForAdmission = async (req, res) => {
       // 2. Fee Structure fetch (course + year match)
       const feeStructure = await FeeStructure.findOne({
         course: student.course,
-        year: parseInt(student.yearOfEnrollment), // ✅ fix datatype mismatch
+        year: parseInt(student.yearOfEnrollment), // 
       });
   
       if (!feeStructure) {
