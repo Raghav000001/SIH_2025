@@ -3,68 +3,77 @@ import { sendMail } from "../helpers/mailer.js";
 import FeeStructure from "../models/feesStructure.modal.js"
 
 export const applyForAdmission = async (req, res) => {
-    try {
-      const {
-        course,
-        department,
-        rollNo,
-        yearOfEnrollment,
-        fatherName,
-        fatherPhoneNumber,
-        motherName,
-        aadharNumber,
-      } = req.body;
-  
-      // Duplicate check
-      const existing = await Student.findOne({
-        $or: [{ aadharNumber }, { rollNo }],
-      });
-      if (existing) {
-        return res.status(400).json({ message: "Student with same Aadhaar or Roll No already exists" });
-      }
-  
-      // Files handle
-      const admissionDocs = {
-        tenthMarksheet: req.files["tenthMarksheet"]?.[0]?.path,
-        twelfthMarksheet: req.files["twelfthMarksheet"]?.[0]?.path,
-        photo: req.files["photo"]?.[0]?.path,
-        signature: req.files["signature"]?.[0]?.path,
-        aadharCard: req.files["aadharCard"]?.[0]?.path,
-        casteCertificate: req.files["casteCertificate"]?.[0]?.path || null,
-        ewsCertificate: req.files["ewsCertificate"]?.[0]?.path || null,
-        domicile: req.files["domicile"]?.[0]?.path || null,
-        sportsCertificate: req.files["sportsCertificate"]?.[0]?.path || null,
-      };
-  
-      // Validation for required docs
-      if (!admissionDocs.tenthMarksheet || !admissionDocs.twelfthMarksheet || !admissionDocs.photo || !admissionDocs.signature || !admissionDocs.aadharCard) {
-        return res.status(400).json({ message: "Required documents missing" });
-      }
-  
-      const student = await Student.create({
-        ...req.body,
-        admissionDocs,
-        admissionStatus: "pending",
-        role: "student",
-      });
+  try {
+    const {
+      name,
+      email,
+      course,
+      department,
+      rollNo,
+      yearOfEnrollment,
+      fatherName,
+      fatherPhoneNumber,
+      motherName,
+      aadharNumber,
+    } = req.body;
 
-      await sendMail(
-        email,
-        "Admission Application Received",
-        `<h3>Dear ${student.name},</h3>
-        <p>Thank you for applying for admission. Our team will review your application and get back to you soon.</p>`
-      );
-  
-  
-      res.status(200).json({
-        message: "Admission form submitted successfully",
-        student,
-      });
-    } catch (error) {
-      console.error("Admission Apply Error:", error);
-      res.status(500).json({ message: "Server Error", error: error.message });
+    if (!email) return res.status(400).json({ message: "Email is required" });
+
+    // Duplicate check
+    const existing = await Student.findOne({ $or: [{ aadharNumber }, { rollNo }] });
+    if (existing) {
+      return res.status(400).json({ message: "Student with same Aadhaar or Roll No already exists" });
     }
-  };
+
+    // Files handle
+    const admissionDocs = {
+      tenthMarksheet: req.files["tenthMarksheet"]?.[0]?.path,
+      twelfthMarksheet: req.files["twelfthMarksheet"]?.[0]?.path,
+      photo: req.files["photo"]?.[0]?.path,
+      signature: req.files["signature"]?.[0]?.path,
+      aadharCard: req.files["aadharCard"]?.[0]?.path,
+      casteCertificate: req.files["casteCertificate"]?.[0]?.path || null,
+      ewsCertificate: req.files["ewsCertificate"]?.[0]?.path || null,
+      domicile: req.files["domicile"]?.[0]?.path || null,
+      sportsCertificate: req.files["sportsCertificate"]?.[0]?.path || null,
+    };
+
+    // Validation for required docs
+    if (!admissionDocs.tenthMarksheet || !admissionDocs.twelfthMarksheet || !admissionDocs.photo || !admissionDocs.signature || !admissionDocs.aadharCard) {
+      return res.status(400).json({ message: "Required documents missing" });
+    }
+
+    const student = await Student.create({
+      name,
+      email,
+      course,
+      department,
+      rollNo,
+      yearOfEnrollment,
+      fatherName,
+      fatherPhoneNumber,
+      motherName,
+      aadharNumber,
+      admissionDocs,
+      admissionStatus: "pending",
+      role: "student",
+    });
+
+    // Send email
+    await sendMail(
+      email,
+      "Admission Application Received",
+      `<h3>Dear ${student.name},</h3>
+      <p>Thank you for applying for admission. Our team will review your application and get back to you soon.</p>`
+    );
+
+    res.status(200).json({ message: "Admission form submitted successfully", student });
+  } catch (error) {
+    console.error("Admission Apply Error:", error);
+    res.status(500).json({ message: "Server Error", error: error.message });
+  }
+};
+
 
   export const approveAdmission = async (req, res) => {
     try {
