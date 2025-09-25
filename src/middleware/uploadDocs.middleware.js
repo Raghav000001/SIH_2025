@@ -5,10 +5,22 @@ import cloudinary from "../helpers/cloudinary.js";
 const storage = new CloudinaryStorage({
   cloudinary,
   params: async (req, file) => {
-    let folder = "college_admissions"; // sabhi uploads yaha jayenge
+    let folder = "college_admissions";
+
+    // Check file type
+    let resourceType = "auto"; // default for images
+    if (
+      file.mimetype === "application/pdf" ||
+      file.mimetype.includes("document") ||
+      file.mimetype.includes("msword") ||
+      file.mimetype.includes("officedocument")
+    ) {
+      resourceType = "raw"; // docs/pdf ke liye
+    }
+
     return {
       folder,
-      resource_type: "auto", // images + pdf dono chalega
+      resource_type: resourceType,
       public_id: `${Date.now()}-${file.originalname.split(".")[0]}`,
     };
   },

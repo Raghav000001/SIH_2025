@@ -171,6 +171,7 @@ export const verifyOTP = async (req, res) => {
       { expiresIn: "1d" }
     );
 
+
     res.cookie("auth_token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -282,13 +283,17 @@ export const verifyForgotPasswordOtp = async (req, res) => {
       return res.status(404).json({ success: false, message: "User not found" });
     }
 
+    console.log("Incoming OTP:", otp, "Type:", typeof otp);
+    console.log("DB OTP:", user.otp, "Type:", typeof user.otp);
+
+
     if (!user.resetOtp || user.resetOtp !== otp || !user.resetOtpExpiry || user.resetOtpExpiry < Date.now()) {
       return res.status(400).json({ success: false, message: "Invalid or expired OTP" });
     }
 
     // Clear OTP fields
-    user.otp = null;
-    user.otpExpiry = null;
+    user.resetOtp = null;
+    user.resetOtpExpiry = null;
     await user.save();
 
     // reset token (JWT)
